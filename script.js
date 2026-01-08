@@ -19,7 +19,7 @@ const initialData = [
     { round: 1196, date: '2025-11-01', numbers: [2, 8, 16, 23, 31, 41], bonus: 18 },
     { round: 1195, date: '2025-10-25', numbers: [6, 13, 21, 27, 36, 43], bonus: 10 },
     { round: 1194, date: '2025-10-18', numbers: [4, 10, 18, 25, 33, 40], bonus: 22 },
-    { round: 1193, date: '2025-10-11', numbers: [1,9, 15, 24, 32, 39], bonus: 14 },
+    { round: 1193, date: '2025-10-11', numbers: [1, 9, 15, 24, 32, 39], bonus: 14 },
     { round: 1192, date: '2025-10-04', numbers: [5, 11, 19, 28, 34, 42], bonus: 7 },
     { round: 1191, date: '2025-09-27', numbers: [3, 12, 17, 26, 35, 45], bonus: 16 }
 ];
@@ -63,6 +63,11 @@ function saveLottoData(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
+// 데이터 정렬 (회차 높은 순)
+function sortDataByRound(data) {
+    return data.sort((a, b) => b.round - a.round);
+}
+
 // 번호에 따른 색상 클래스 반환
 function getColorClass(number) {
     if (number <= 10) return 'color1';
@@ -75,19 +80,24 @@ function getColorClass(number) {
 // 로또 목록 렌더링
 function renderLottoList() {
     const lottoList = document.getElementById('lottoList');
-    const data = loadLottoData();
+    let data = loadLottoData();
+    
+    // 회차 높은 순으로 정렬
+    data = sortDataByRound(data);
     
     lottoList.innerHTML = '';
     
     data.forEach((item, index) => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'lotto-item';
+        itemDiv.dataset.round = item.round;
         
         const numbersHTML = item.numbers.map(num => 
             `<div class="number-ball ${getColorClass(num)}">${num}</div>`
         ).join('');
         
         itemDiv.innerHTML = `
+            <button class="btn-delete" onclick="deleteRound(${item.round})">삭제</button>
             <div class="lotto-header">
                 <span class="round-info">제 ${item.round}회</span>
                 <span class="date-info">${formatDateDisplay(item.date)}</span>
@@ -139,6 +149,56 @@ function showModal(message) {
         btnYes.addEventListener('click', handleYes);
         btnNo.addEventListener('click', handleNo);
     });
+}
+
+// 삭제 모달 표시
+function showDeleteModal(message) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('deleteModal');
+        const modalMessage = document.getElementById('deleteModalMessage');
+        const btnYes = document.getElementById('deleteYes');
+        const btnNo = document.getElementById('deleteNo');
+        
+        modalMessage.textContent = message;
+        modal.classList.add('show');
+        
+        function cleanup() {
+            modal.classList.remove('show');
+            btnYes.removeEventListener('click', handleYes);
+            btnNo.removeEventListener('click', handleNo);
+        }
+        
+        function handleYes() {
+            cleanup();
+            resolve(true);
+        }
+        
+        function handleNo() {
+            cleanup();
+            resolve(false);
+        }
+        
+        btnYes.addEventListener('click', handleYes);
+        btnNo.addEventListener('click', handleNo);
+    });
+}
+
+// 회차 삭제
+async function deleteRound(round) {
+    let data = loadLottoData();
+    const item = data.find(d => d.round === round);
+    
+    if (!item) return;
+    
+    const message = `제 ${item.round}회 (${formatDateDisplay(item.date)}) 회차를 삭제하시겠습니까?`;
+    const shouldDelete = await showDeleteModal(message);
+    
+    if (shouldDelete) {
+        data = data.filter(d => d.round !== round);
+        saveLottoData(data);
+        renderLottoList();
+        alert('회차가 삭제되었습니다.');
+    }
 }
 
 // 새 회차 추가
@@ -198,6 +258,12 @@ async function addNewRound() {
         if (shouldUpdate) {
             // 기존 데이터 업데이트
             data[duplicateIndex] = newRound;
+            // 회차 높은 순으로 정렬
+            data = sortDataByRound(data);
+            // 15개만 유지
+            if (data.length > 15) {
+                data = data.slice(0, 15);
+            }
             saveLottoData(data);
             renderLottoList();
             clearInputFields();
@@ -206,10 +272,13 @@ async function addNewRound() {
         return;
     }
     
-    // 맨 앞에 새 회차 추가
-    data.unshift(newRound);
+    // 새 회차 추가
+    data.push(newRound);
     
-    // 15개만 유지 (가장 오래된 것 삭제)
+    // 회차 높은 순으로 정렬
+    data = sortDataByRound(data);
+    
+    // 15개만 유지 (회차가 낮은 것 삭제)
     if (data.length > 15) {
         data = data.slice(0, 15);
     }
@@ -301,4 +370,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
- 
+
