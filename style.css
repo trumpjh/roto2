@@ -20,26 +20,22 @@ body {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
-h1 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 30px;
-    font-size: 2.5em;
+@media (max-width: 768px) {
+    .container {
+        padding: 20px 15px;
+        border-radius: 15px;
+        margin: 10px;
+    }
 }
 
-h2 {
-    color: #555;
-    margin-bottom: 20px;
-    font-size: 1.5em;
-    border-bottom: 3px solid #667eea;
-    padding-bottom: 10px;
+@media (max-width: 480px) {
+    .container {
+        padding: 15px 10px;
+        border-radius: 12px;
+        margin: 5px;
+    }
 }
 
-h3 {
-    color: #666;
-    margin-bottom: 15px;
-    font-size: 1.2em;
-}
 
 /* 동기화 상태 표시 */
 .sync-status {
@@ -627,16 +623,16 @@ h3 {
     }
 }
 /* ========================================
-   추천 번호 마킹 용지 스타일 (로또 용지 디자인)
+   추천 번호 마킹 용지 (모바일 최적화)
    ======================================== */
 
 .recommend-marking {
     margin-top: 20px;
-    padding: 20px;
+    padding: 15px;
     background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
-    border-radius: 12px;
-    border: 3px solid #2c3e50;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    border: 2px solid #34495e;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
     position: relative;
 }
 
@@ -646,74 +642,76 @@ h3 {
     top: 0;
     left: 0;
     right: 0;
-    height: 40px;
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-    border-radius: 9px 9px 0 0;
+    height: 35px;
+    background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+    border-radius: 8px 8px 0 0;
 }
 
 .marking-title {
     position: relative;
     font-weight: 700;
     color: white;
-    margin-bottom: 15px;
-    font-size: 1em;
+    margin-bottom: 12px;
+    font-size: 0.9em;
     text-align: center;
-    padding: 8px 0;
+    padding: 6px 0;
     z-index: 1;
 }
 
 .mini-lotto-sheet {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     background: white;
-    padding: 15px;
+    padding: 12px;
     border-radius: 8px;
-    border: 2px solid #e0e0e0;
+    border: 1px solid #e0e0e0;
 }
 
 .mini-sheet-row {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px;
+    gap: 6px;
+    padding: 6px;
     background: linear-gradient(to right, #f8f9fa 0%, #ffffff 100%);
-    border-radius: 6px;
-    border-left: 4px solid #3498db;
+    border-radius: 5px;
+    border-left: 3px solid #3498db;
 }
 
 .mini-row-label {
     font-weight: 700;
     color: #2c3e50;
-    font-size: 0.9em;
-    min-width: 40px;
+    font-size: 0.75em;
+    min-width: 32px;
     background: #ecf0f1;
-    padding: 4px 8px;
+    padding: 3px 6px;
     border-radius: 4px;
     text-align: center;
+    flex-shrink: 0;
 }
 
 .mini-sheet-numbers {
     display: flex;
-    gap: 6px;
+    gap: 4px;
     flex-wrap: wrap;
     flex: 1;
 }
 
 .mini-sheet-number {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 11px;
     border: 2px solid #bdc3c7;
     background: white;
     color: #95a5a6;
     transition: all 0.3s;
     position: relative;
+    flex-shrink: 0;
 }
 
 .mini-sheet-number::before {
@@ -730,9 +728,9 @@ h3 {
 .mini-sheet-number.marked {
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
     color: white;
-    border: 3px solid #c0392b;
-    transform: scale(1.15);
-    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.5);
+    border: 2px solid #c0392b;
+    transform: scale(1.1);
+    box-shadow: 0 3px 10px rgba(231, 76, 60, 0.4);
     animation: markPulse 0.5s ease-out;
 }
 
@@ -743,113 +741,123 @@ h3 {
 .mini-sheet-number.marked::after {
     content: '✓';
     position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 18px;
-    height: 18px;
+    top: -6px;
+    right: -6px;
+    width: 14px;
+    height: 14px;
     background: #27ae60;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 10px;
     color: white;
     border: 2px solid white;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes markPulse {
-    0% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.25);
-    }
-    100% {
-        transform: scale(1.15);
-    }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1.1); }
 }
 
-/* 로또 용지 하단 정보 */
 .recommend-marking::after {
     content: '※ 선택된 번호를 확인하세요';
     display: block;
     text-align: center;
-    margin-top: 15px;
-    padding-top: 15px;
+    margin-top: 12px;
+    padding-top: 12px;
     border-top: 2px dashed #bdc3c7;
     color: #7f8c8d;
-    font-size: 0.85em;
+    font-size: 0.8em;
     font-weight: 600;
 }
 
-/* 분석 설명 텍스트 */
-.analysis-desc {
-    color: #666;
+/* 전체 당첨 번호 마킹 분석 개선 */
+.analysis-section {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 15px;
+    margin-top: 30px;
+}
+
+.analysis-section h2 {
+    color: #2c3e50;
     margin-bottom: 15px;
-    font-size: 0.95em;
+    font-size: 1.5em;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 12px;
+}
+
+.analysis-desc {
+    color: #555;
+    margin-bottom: 20px;
+    font-size: 0.9em;
     text-align: center;
-    padding: 10px;
-    background: #fff3cd;
+    padding: 12px;
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
     border-radius: 8px;
     border-left: 4px solid #ffc107;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
 }
 
-/* 전체 당첨 번호 마킹 분석 스타일 개선 */
-.analysis-section .lotto-sheet {
+.lotto-sheet {
     background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
-    padding: 25px;
+    padding: 20px;
     border-radius: 12px;
     box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
-    border: 3px solid #34495e;
+    border: 2px solid #34495e;
 }
 
-.analysis-section .sheet-row {
+.sheet-row {
     display: flex;
     align-items: center;
-    margin-bottom: 12px;
-    padding: 12px;
+    margin-bottom: 10px;
+    padding: 10px;
     background: linear-gradient(to right, #ecf0f1 0%, #ffffff 100%);
     border-radius: 8px;
-    border-left: 5px solid #3498db;
+    border-left: 4px solid #3498db;
 }
 
-.analysis-section .row-label {
+.row-label {
     font-weight: 700;
     color: white;
-    width: 60px;
-    font-size: 1em;
-    background: #3498db;
-    padding: 6px 12px;
+    width: 55px;
+    font-size: 0.9em;
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    padding: 6px 10px;
     border-radius: 6px;
     text-align: center;
+    flex-shrink: 0;
 }
 
-.analysis-section .sheet-numbers {
+.sheet-numbers {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
     flex: 1;
-    padding-left: 15px;
+    padding-left: 12px;
 }
 
-.analysis-section .sheet-number {
-    width: 45px;
-    height: 45px;
+.sheet-number {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 15px;
+    font-size: 14px;
     border: 2px solid #bdc3c7;
     background: white;
     color: #95a5a6;
     transition: all 0.3s;
     position: relative;
+    flex-shrink: 0;
 }
 
-.analysis-section .sheet-number::before {
+.sheet-number::before {
     content: '';
     position: absolute;
     width: 100%;
@@ -858,39 +866,35 @@ h3 {
     background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.6), transparent);
 }
 
-.analysis-section .sheet-number.marked {
+.sheet-number.marked {
     color: white;
     border: none;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.analysis-section .sheet-number.high {
+.sheet-number.high {
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
     animation: glow 2s ease-in-out infinite;
 }
 
-.analysis-section .sheet-number.medium {
+.sheet-number.medium {
     background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
 }
 
-.analysis-section .sheet-number.low {
+.sheet-number.low {
     background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
 }
 
 @keyframes glow {
-    0%, 100% {
-        box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
-    }
-    50% {
-        box-shadow: 0 4px 20px rgba(231, 76, 60, 0.6);
-    }
+    0%, 100% { box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3); }
+    50% { box-shadow: 0 4px 20px rgba(231, 76, 60, 0.6); }
 }
 
-.analysis-section .analysis-legend {
+.analysis-legend {
     display: flex;
     justify-content: center;
-    gap: 30px;
-    margin-top: 25px;
+    gap: 25px;
+    margin-top: 20px;
     padding: 15px;
     background: white;
     border-radius: 8px;
@@ -898,40 +902,42 @@ h3 {
     flex-wrap: wrap;
 }
 
-.analysis-section .analysis-legend span {
+.analysis-legend span {
     display: flex;
     align-items: center;
     font-weight: 600;
     color: #2c3e50;
+    font-size: 0.9em;
 }
 
-.analysis-section .legend-box {
+.legend-box {
     display: inline-block;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
-    margin-right: 10px;
+    margin-right: 8px;
     vertical-align: middle;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
 }
 
-.analysis-section .legend-box.high {
+.legend-box.high {
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
 }
 
-.analysis-section .legend-box.medium {
+.legend-box.medium {
     background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
 }
 
-.analysis-section .legend-box.low {
+.legend-box.low {
     background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
 }
 
-/* 생성된 추천 번호 섹션 스타일 개선 */
+/* 생성된 추천 번호 섹션 개선 */
 .generated-numbers {
     margin-top: 25px;
     padding: 25px;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
     border-radius: 15px;
     border: 3px solid #27ae60;
     box-shadow: 0 5px 20px rgba(39, 174, 96, 0.2);
@@ -944,75 +950,467 @@ h3 {
     font-size: 1.5em;
     padding-bottom: 15px;
     border-bottom: 3px solid #27ae60;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.generated-numbers h3::before {
+    content: '🎯';
+    font-size: 1.2em;
+}
+
+.recommend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .recommend-item {
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    padding: 20px;
+    padding: 18px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    border: 2px solid #ecf0f1;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border: 2px solid #e9ecef;
     transition: all 0.3s;
-    margin-bottom: 20px;
 }
 
 .recommend-item:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
     border-color: #3498db;
 }
 
-/* 모바일 반응형 */
+.recommend-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.recommend-title {
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.recommend-type {
+    font-size: 0.8em;
+    padding: 5px 12px;
+    border-radius: 20px;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.type-rare {
+    background: linear-gradient(135deg, #6c5ce7 0%, #5f3dc4 100%);
+}
+
+.type-frequent {
+    background: linear-gradient(135deg, #00b894 0%, #00a383 100%);
+}
+
+.type-mixed {
+    background: linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%);
+    color: #2c3e50;
+}
+
+.type-position {
+    background: linear-gradient(135deg, #e17055 0%, #d63031 100%);
+}
+
+.recommend-numbers {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+/* 모바일 최적화 (768px 이하) */
 @media (max-width: 768px) {
-    .mini-sheet-number {
-        width: 30px;
-        height: 30px;
-        font-size: 11px;
+    /* 네비게이션 */
+    .page-nav {
+        padding: 6px;
+        border-radius: 12px;
+        margin-bottom: 20px;
     }
     
-    .mini-sheet-number.marked::after {
-        width: 16px;
-        height: 16px;
-        font-size: 10px;
-        top: -6px;
-        right: -6px;
+    .nav-link {
+        padding: 12px 15px;
+        font-size: 0.9em;
+        gap: 5px;
     }
     
-    .mini-row-label {
-        min-width: 35px;
-        font-size: 0.8em;
-        padding: 3px 6px;
+    .nav-link.active::before {
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-top: 8px solid white;
     }
     
+    /* 동기화 상태 */
+    .sync-status {
+        padding: 10px 15px;
+        margin-bottom: 15px;
+    }
+    
+    #statusText {
+        font-size: 0.85em;
+    }
+    
+    /* 마킹 용지 */
     .recommend-marking {
-        padding: 15px;
+        padding: 12px;
+        margin-top: 15px;
+    }
+    
+    .recommend-marking::before {
+        height: 30px;
+    }
+    
+    .marking-title {
+        font-size: 0.85em;
+        padding: 5px 0;
+        margin-bottom: 10px;
     }
     
     .mini-lotto-sheet {
         padding: 10px;
+        gap: 5px;
     }
     
-    .analysis-section .sheet-number {
-        width: 38px;
-        height: 38px;
-        font-size: 13px;
+    .mini-sheet-row {
+        gap: 5px;
+        padding: 5px;
     }
     
-    .analysis-section .row-label {
-        width: 50px;
-        font-size: 0.9em;
+    .mini-row-label {
+        min-width: 28px;
+        font-size: 0.7em;
+        padding: 2px 4px;
     }
     
-    .analysis-section .analysis-legend {
+    .mini-sheet-numbers {
+        gap: 3px;
+    }
+    
+    .mini-sheet-number {
+        width: 26px;
+        height: 26px;
+        font-size: 10px;
+        border: 1.5px solid #bdc3c7;
+    }
+    
+    .mini-sheet-number.marked {
+        border: 1.5px solid #c0392b;
+    }
+    
+    .mini-sheet-number.marked::after {
+        width: 12px;
+        height: 12px;
+        font-size: 9px;
+        top: -5px;
+        right: -5px;
+    }
+    
+    .recommend-marking::after {
+        font-size: 0.75em;
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+    
+    /* 전체 마킹 분석 */
+    .analysis-section {
+        padding: 20px 15px;
+    }
+    
+    .analysis-section h2 {
+        font-size: 1.3em;
+    }
+    
+    .analysis-desc {
+        font-size: 0.85em;
+        padding: 10px;
+    }
+    
+    .lotto-sheet {
+        padding: 15px;
+    }
+    
+    .sheet-row {
+        padding: 8px;
+        margin-bottom: 8px;
+    }
+    
+    .row-label {
+        width: 45px;
+        font-size: 0.8em;
+        padding: 5px 8px;
+    }
+    
+    .sheet-numbers {
+        gap: 6px;
+        padding-left: 10px;
+    }
+    
+    .sheet-number {
+        width: 35px;
+        height: 35px;
+        font-size: 12px;
+    }
+    
+    .analysis-legend {
+        gap: 15px;
+        padding: 12px;
+    }
+    
+    .analysis-legend span {
+        font-size: 0.8em;
+    }
+    
+    .legend-box {
+        width: 18px;
+        height: 18px;
+        margin-right: 6px;
+    }
+    
+    /* 추천 번호 */
+    .generated-numbers {
+        padding: 20px 15px;
+    }
+    
+    .generated-numbers h3 {
+        font-size: 1.3em;
+        padding-bottom: 12px;
+    }
+    
+    .recommend-list {
         gap: 15px;
     }
     
-    .recommend-marking::before {
-        height: 35px;
+    .recommend-item {
+        padding: 15px;
     }
     
-    .marking-title {
-        font-size: 0.9em;
-        padding: 6px 0;
+    .recommend-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
+    
+    .recommend-title {
+        font-size: 1em;
+    }
+    
+    .recommend-type {
+        font-size: 0.75em;
+        padding: 4px 10px;
+    }
+    
+    .recommend-numbers {
+        gap: 6px;
+    }
+    
+    .number-ball {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+}
+
+/* 초소형 모바일 (480px 이하) */
+@media (max-width: 480px) {
+    .mini-sheet-number {
+        width: 24px;
+        height: 24px;
+        font-size: 9px;
+    }
+    
+    .mini-row-label {
+        min-width: 25px;
+        font-size: 0.65em;
+    }
+    
+    .mini-sheet-numbers {
+        gap: 2px;
+    }
+    
+    .sheet-number {
+        width: 32px;
+        height: 32px;
+        font-size: 11px;
+    }
+    
+    .sheet-numbers {
+        gap: 5px;
+    }
+    
+    .row-label {
+        width: 40px;
+        font-size: 0.75em;
+    }
+    
+    .recommend-marking::after {
+        font-size: 0.7em;
+    }
+    
+    .number-ball {
+        width: 38px;
+        height: 38px;
+        font-size: 15px;
+    }
+}
+
+/* 가로 모드 최적화 */
+@media (max-width: 768px) and (orientation: landscape) {
+    .mini-sheet-row {
+        padding: 4px;
+    }
+    
+    .mini-sheet-number {
+        width: 24px;
+        height: 24px;
+        font-size: 9px;
+    }
+    
+    .sheet-row {
+        padding: 6px;
+    }
+    
+    .sheet-number {
+        width: 32px;
+        height: 32px;
+        font-size: 11px;
+    }
+}
+
+/* ========================================
+   페이지 네비게이션 (개선 버전)
+   ======================================== */
+
+.page-nav {
+    display: flex;
+    gap: 0;
+    margin-bottom: 25px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 8px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.page-nav::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.nav-link {
+    flex: 1;
+    padding: 15px 25px;
+    text-align: center;
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.8);
+    background: transparent;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1.05em;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.nav-link.active {
+    background: white;
+    color: #667eea;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+.nav-link.active::before {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid white;
+}
+
+/* 동기화 상태 개선 */
+.sync-status {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    border: 2px solid #e9ecef;
+}
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #95a5a6;
+    animation: pulse 2s infinite;
+    box-shadow: 0 0 0 0 rgba(149, 165, 166, 0.7);
+}
+
+.status-dot.online {
+    background: #2ecc71;
+    box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+}
+
+.status-dot.offline {
+    background: #e74c3c;
+    box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7);
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(149, 165, 166, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(149, 165, 166, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(149, 165, 166, 0);
+    }
+}
+
+#statusText {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 0.95em;
 }
