@@ -110,7 +110,83 @@ function getRowForNumber(num) {
     if (num >= 43 && num <= 45) return 7;
 }
 
-// 마킹 분석 렌더링
+// 추천 번호의 마킹 표시 렌더링
+function renderRecommendMarkings(recommendations) {
+    // 각 추천 번호 아래에 마킹 용지 추가
+    recommendations.forEach((rec, index) => {
+        const recommendItem = document.querySelectorAll('.recommend-item')[index];
+        if (!recommendItem) return;
+        
+        // 마킹 용지 HTML 생성
+        const markingHTML = `
+            <div class="recommend-marking">
+                <div class="marking-title">📋 마킹 용지</div>
+                <div class="mini-lotto-sheet">
+                    <div class="mini-sheet-row">
+                        <span class="mini-row-label">1행</span>
+                        <div class="mini-sheet-numbers" data-row="1" data-rec-index="${index}"></div>
+                    </div>
+                    <div class="mini-sheet-row">
+                        <span class="mini-row-label">2행</span>
+                        <div class="mini-sheet-numbers" data-row="2" data-rec-index="${index}"></div>
+                    </div>
+                    <div class="mini-sheet-row">
+                        <span class="mini-row-label">3행</span>
+                        <div class="mini-sheet-numbers" data-row="3" data-rec-index="${index}"></div>
+                    </div>
+                    <div class="mini-sheet-row">
+                        <span class="mini-row-label">4행</span>
+                        <div class="mini-sheet-numbers" data-row="4" data-rec-index="${index}"></div>
+                    </div>
+                    <div class="mini-sheet-row">
+                        <span class="mini-row-label">5행</span>
+                        <div class="mini-sheet-numbers" data-row="5" data-rec-index="${index}"></div>
+                    </div>
+                    <div class="mini-sheet-row">
+                        <span class="mini-row-label">6행</span>
+                        <div class="mini-sheet-numbers" data-row="6" data-rec-index="${index}"></div>
+                    </div>
+                    <div class="mini-sheet-row">
+                        <span class="mini-row-label">7행</span>
+                        <div class="mini-sheet-numbers" data-row="7" data-rec-index="${index}"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        recommendItem.insertAdjacentHTML('beforeend', markingHTML);
+        
+        // 각 행에 번호 채우기
+        for (let row = 1; row <= 7; row++) {
+            const rowElement = recommendItem.querySelector(`.mini-sheet-numbers[data-row="${row}"][data-rec-index="${index}"]`);
+            if (!rowElement) continue;
+            
+            let start, end;
+            if (row === 1) { start = 1; end = 7; }
+            else if (row === 2) { start = 8; end = 14; }
+            else if (row === 3) { start = 15; end = 21; }
+            else if (row === 4) { start = 22; end = 28; }
+            else if (row === 5) { start = 29; end = 35; }
+            else if (row === 6) { start = 36; end = 42; }
+            else { start = 43; end = 45; }
+            
+            for (let num = start; num <= end; num++) {
+                const numberDiv = document.createElement('div');
+                numberDiv.className = 'mini-sheet-number';
+                numberDiv.textContent = num;
+                
+                // 추천 번호에 포함되면 마킹
+                if (rec.numbers.includes(num)) {
+                    numberDiv.classList.add('marked');
+                }
+                
+                rowElement.appendChild(numberDiv);
+            }
+        }
+    });
+}
+
+// 전체 마킹 분석 렌더링 (기존 당첨 번호 분석)
 async function renderMarkingAnalysis() {
     const { frequency } = await analyzeNumbers();
     
@@ -365,6 +441,9 @@ async function renderRecommendations() {
         recommendList.appendChild(itemDiv);
     });
     
+    // 각 추천 번호에 마킹 용지 추가
+    renderRecommendMarkings(recommendations);
+    
     const generatedNumbers = document.getElementById('generatedNumbers');
     if (generatedNumbers) {
         generatedNumbers.style.display = 'block';
@@ -383,50 +462,6 @@ async function renderRecommendations() {
     console.log('✅ 추천 번호 렌더링 완료');
 }
 
-// 최근 당첨 번호 미리보기
-async function renderPreview() {
-    console.log('📋 미리보기 렌더링 시작...');
-    
-    const data = await loadFromFirebase();
-    const previewList = document.getElementById('previewList');
-    
-    if (!previewList) {
-        console.error('❌ previewList 요소를 찾을 수 없습니다');
-        return;
-    }
-    
-    if (data.length === 0) {
-        previewList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">등록된 회차가 없습니다.<br><a href="index.html">번호 관리 페이지</a>에서 회차를 추가해주세요.</p>';
-        return;
-    }
-    
-    // 최근 5개만 표시
-    const recentData = data.slice(0, 5);
-    
-    previewList.innerHTML = '';
-    
-    recentData.forEach(item => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'preview-item';
-        
-        const numbersHTML = item.numbers.map(num => 
-            `<div class="preview-ball ${getColorClass(num)}">${num}</div>`
-        ).join('');
-        
-        itemDiv.innerHTML = `
-            <div class="preview-round">제 ${item.round}회</div>
-            <div class="preview-numbers">
-                ${numbersHTML}
-                <div class="preview-ball bonus">${item.bonus}</div>
-            </div>
-        `;
-        
-        previewList.appendChild(itemDiv);
-    });
-    
-    console.log('✅ 미리보기 렌더링 완료');
-}
-
 // 이벤트 리스너 등록
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('🚀 페이지 로드 완료');
@@ -436,9 +471,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         alert('Firebase 연결에 실패했습니다.\n\nFirebase 설정을 확인해주세요:\n1. firebaseConfig가 올바른지 확인\n2. Firebase Realtime Database가 생성되었는지 확인\n3. 보안 규칙이 올바른지 확인');
         return;
     }
-    
-    // 미리보기 렌더링
-    await renderPreview();
     
     // 번호 생성 버튼
     const generateButton = document.getElementById('generateButton');
