@@ -14,11 +14,12 @@
             <h2>새 회차 추가</h2>
             <div class="input-group">
                 <label>회차 번호:</label>
-                <input type="number" id="roundNumber" placeholder="예: 1150">
+                <input type="number" id="roundNumber" placeholder="예: 1205">
+                <small class="help-text">회차를 입력하면 날짜가 자동 계산됩니다 (기준: 1205회 = 2026.01.03)</small>
             </div>
             <div class="input-group">
                 <label>추첨 날짜:</label>
-                <input type="date" id="drawDate">
+                <input type="text" id="drawDate" readonly>
             </div>
             <div class="input-group">
                 <label>당첨 번호 (6개):</label>
@@ -45,6 +46,18 @@
 
         <div class="button-group">
             <button id="resetButton" class="btn-reset">초기 데이터로 리셋</button>
+        </div>
+    </div>
+
+    <!-- 확인 모달 -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3>⚠️ 중복 회차 발견</h3>
+            <p id="modalMessage"></p>
+            <div class="modal-buttons">
+                <button id="modalYes" class="btn-modal btn-yes">예</button>
+                <button id="modalNo" class="btn-modal btn-no">아니오</button>
+            </div>
         </div>
     </div>
 

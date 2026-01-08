@@ -1,24 +1,50 @@
 // 로또 데이터 저장 키
 const STORAGE_KEY = 'lottoData';
 
+// 기준 회차 정보 (1205회 = 2026년 1월 3일 토요일)
+const BASE_ROUND = 1205;
+const BASE_DATE = new Date('2026-01-03');
+
 // 초기 데이터 (2026년 1월 3일 기준 최근 15회차)
 const initialData = [
-    { round: 1150, date: '2026-01-03', numbers: [7, 12, 19, 23, 31, 42], bonus: 15 },
-    { round: 1149, date: '2025-12-27', numbers: [3, 8, 14, 22, 35, 41], bonus: 28 },
-    { round: 1148, date: '2025-12-20', numbers: [5, 11, 18, 27, 33, 44], bonus: 9 },
-    { round: 1147, date: '2025-12-13', numbers: [2, 13, 21, 29, 36, 43], bonus: 17 },
-    { round: 1146, date: '2025-12-06', numbers: [6, 10, 16, 25, 34, 40], bonus: 12 },
-    { round: 1145, date: '2025-11-29', numbers: [4, 9, 15, 24, 32, 39], bonus: 20 },
-    { round: 1144, date: '2025-11-22', numbers: [1, 14, 19, 26, 37, 45], bonus: 8 },
-    { round: 1143, date: '2025-11-15', numbers: [7, 11, 17, 28, 35, 42], bonus: 13 },
-    { round: 1142, date: '2025-11-08', numbers: [3, 12, 20, 30, 38, 44], bonus: 5 },
-    { round: 1141, date: '2025-11-01', numbers: [2, 8, 16, 23, 31, 41], bonus: 18 },
-    { round: 1140, date: '2025-10-25', numbers: [6, 13, 21, 27, 36, 43], bonus: 10 },
-    { round: 1139, date: '2025-10-18', numbers: [4, 10, 18, 25, 33, 40], bonus: 22 },
-    { round: 1138, date: '2025-10-11', numbers: [1, 9, 15, 24, 32, 39], bonus: 14 },
-    { round: 1137, date: '2025-10-04', numbers: [5, 11, 19, 28, 34, 42], bonus: 7 },
-    { round: 1136, date: '2025-09-27', numbers: [3, 12, 17, 26, 35, 45], bonus: 16 }
+    { round: 1205, date: '2026-01-03', numbers: [7, 12, 19, 23, 31, 42], bonus: 15 },
+    { round: 1204, date: '2025-12-27', numbers: [3, 8, 14, 22, 35, 41], bonus: 28 },
+    { round: 1203, date: '2025-12-20', numbers: [5, 11, 18, 27, 33, 44], bonus: 9 },
+    { round: 1202, date: '2025-12-13', numbers: [2, 13, 21, 29, 36, 43], bonus: 17 },
+    { round: 1201, date: '2025-12-06', numbers: [6, 10, 16, 25, 34, 40], bonus: 12 },
+    { round: 1200, date: '2025-11-29', numbers: [4, 9, 15, 24, 32, 39], bonus: 20 },
+    { round: 1199, date: '2025-11-22', numbers: [1, 14, 19, 26, 37, 45], bonus: 8 },
+    { round: 1198, date: '2025-11-15', numbers: [7, 11, 17, 28, 35, 42], bonus: 13 },
+    { round: 1197, date: '2025-11-08', numbers: [3, 12, 20, 30, 38, 44], bonus: 5 },
+    { round: 1196, date: '2025-11-01', numbers: [2, 8, 16, 23, 31, 41], bonus: 18 },
+    { round: 1195, date: '2025-10-25', numbers: [6, 13, 21, 27, 36, 43], bonus: 10 },
+    { round: 1194, date: '2025-10-18', numbers: [4, 10, 18, 25, 33, 40], bonus: 22 },
+    { round: 1193, date: '2025-10-11', numbers: [1,9, 15, 24, 32, 39], bonus: 14 },
+    { round: 1192, date: '2025-10-04', numbers: [5, 11, 19, 28, 34, 42], bonus: 7 },
+    { round: 1191, date: '2025-09-27', numbers: [3, 12, 17, 26, 35, 45], bonus: 16 }
 ];
+
+// 회차 번호로 날짜 계산 (매주 토요일)
+function calculateDateFromRound(round) {
+    const roundDiff = round - BASE_ROUND;
+    const daysDiff = roundDiff * 7; // 1주일 = 7일
+    
+    const resultDate = new Date(BASE_DATE);
+    resultDate.setDate(resultDate.getDate() + daysDiff);
+    
+    // YYYY-MM-DD 형식으로 반환
+    const year = resultDate.getFullYear();
+    const month = String(resultDate.getMonth() + 1).padStart(2, '0');
+    const day = String(resultDate.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+}
+
+// 날짜를 YYYY. MM. DD. 형식으로 변환
+function formatDateDisplay(dateString) {
+    const [year, month, day] = dateString.split('-');
+    return `${year}. ${month}. ${day}.`;
+}
 
 // 로또 데이터 로드
 function loadLottoData() {
@@ -64,7 +90,7 @@ function renderLottoList() {
         itemDiv.innerHTML = `
             <div class="lotto-header">
                 <span class="round-info">제 ${item.round}회</span>
-                <span class="date-info">${item.date}</span>
+                <span class="date-info">${formatDateDisplay(item.date)}</span>
             </div>
             <div class="numbers-container">
                 ${numbersHTML}
@@ -77,8 +103,46 @@ function renderLottoList() {
     });
 }
 
+// 중복 회차 확인
+function checkDuplicate(round, date) {
+    const data = loadLottoData();
+    return data.findIndex(item => item.round === round || item.date === date);
+}
+
+// 모달 표시
+function showModal(message) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('confirmModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const btnYes = document.getElementById('modalYes');
+        const btnNo = document.getElementById('modalNo');
+        
+        modalMessage.textContent = message;
+        modal.classList.add('show');
+        
+        function cleanup() {
+            modal.classList.remove('show');
+            btnYes.removeEventListener('click', handleYes);
+            btnNo.removeEventListener('click', handleNo);
+        }
+        
+        function handleYes() {
+            cleanup();
+            resolve(true);
+        }
+        
+        function handleNo() {
+            cleanup();
+            resolve(false);
+        }
+        
+        btnYes.addEventListener('click', handleYes);
+        btnNo.addEventListener('click', handleNo);
+    });
+}
+
 // 새 회차 추가
-function addNewRound() {
+async function addNewRound() {
     const roundNumber = document.getElementById('roundNumber').value;
     const drawDate = document.getElementById('drawDate').value;
     const numberInputs = document.querySelectorAll('.number-input');
@@ -107,7 +171,7 @@ function addNewRound() {
     // 중복 검사
     const allNumbers = [...numbers, parseInt(bonusNumber)];
     if (new Set(allNumbers).size !== allNumbers.length) {
-               alert('중복된 번호가 있습니다.');
+        alert('중복된 번호가 있습니다.');
         return;
     }
     
@@ -122,6 +186,26 @@ function addNewRound() {
     // 기존 데이터 로드
     let data = loadLottoData();
     
+    // 중복 회차 확인
+    const duplicateIndex = checkDuplicate(newRound.round, newRound.date);
+    
+    if (duplicateIndex !== -1) {
+        const existingRound = data[duplicateIndex];
+        const message = `제 ${existingRound.round}회 (${formatDateDisplay(existingRound.date)}) 회차가 이미 존재합니다.\n데이터를 변경하시겠습니까?`;
+        
+        const shouldUpdate = await showModal(message);
+        
+        if (shouldUpdate) {
+            // 기존 데이터 업데이트
+            data[duplicateIndex] = newRound;
+            saveLottoData(data);
+            renderLottoList();
+            clearInputFields();
+            alert('회차 정보가 변경되었습니다.');
+        }
+        return;
+    }
+    
     // 맨 앞에 새 회차 추가
     data.unshift(newRound);
     
@@ -133,14 +217,17 @@ function addNewRound() {
     // 저장 및 렌더링
     saveLottoData(data);
     renderLottoList();
-    
-    // 입력 필드 초기화
-    document.getElementById('roundNumber').value = '';
-    document.getElementById('drawDate').value = '';
-    numberInputs.forEach(input => input.value = '');
-    document.getElementById('bonusNumber').value = '';
+    clearInputFields();
     
     alert('새 회차가 추가되었습니다!');
+}
+
+// 입력 필드 초기화
+function clearInputFields() {
+    document.getElementById('roundNumber').value = '';
+    document.getElementById('drawDate').value = '';
+    document.querySelectorAll('.number-input').forEach(input => input.value = '');
+    document.getElementById('bonusNumber').value = '';
 }
 
 // 초기 데이터로 리셋
@@ -156,6 +243,17 @@ function resetToInitialData() {
 document.addEventListener('DOMContentLoaded', function() {
     // 초기 렌더링
     renderLottoList();
+    
+    // 회차 번호 입력 시 자동으로 날짜 계산
+    document.getElementById('roundNumber').addEventListener('input', function() {
+        const round = parseInt(this.value);
+        if (round && !isNaN(round)) {
+            const calculatedDate = calculateDateFromRound(round);
+            document.getElementById('drawDate').value = calculatedDate;
+        } else {
+            document.getElementById('drawDate').value = '';
+        }
+    });
     
     // 추가 버튼
     document.getElementById('addButton').addEventListener('click', addNewRound);
@@ -186,6 +284,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // 회차 번호에서 엔터키 누르면 첫 번째 번호 입력으로 이동
+    document.getElementById('roundNumber').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            numberInputs[0].focus();
+        }
+    });
+    
     // 숫자 입력 제한 (1-45)
     const allNumberInputs = [...numberInputs, document.getElementById('bonusNumber')];
     allNumberInputs.forEach(input => {
@@ -195,3 +301,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+ 
