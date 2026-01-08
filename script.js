@@ -112,12 +112,9 @@ function getRowForNumber(num) {
 // 마킹 분석 렌더링
 function renderMarkingAnalysis() {
     const { frequency } = analyzeNumbers();
-    const data = loadLottoData();
     
     // 최대/최소 빈도 계산
     const frequencies = Object.values(frequency);
-    const maxFreq = Math.max(...frequencies);
-    const minFreq = Math.min(...frequencies.filter(f => f > 0));
     const avgFreq = frequencies.reduce((a, b) => a + b, 0) / 45;
     
     // 각 행별로 렌더링
@@ -155,8 +152,7 @@ function renderMarkingAnalysis() {
         }
     }
     
-    document.getElementById('analysisSection').style.display = 
-'block';
+    document.getElementById('analysisSection').style.display = 'block';
 }
 
 // 로또 번호 생성 함수들
@@ -387,6 +383,7 @@ function renderLottoList() {
     const lottoList = document.getElementById('lottoList');
     let data = loadLottoData();
     
+    // 회차 높은 순으로 정렬
     data = sortDataByRound(data);
     
     lottoList.innerHTML = '';
@@ -512,6 +509,7 @@ async function addNewRound() {
     const numberInputs = document.querySelectorAll('.number-input');
     const bonusNumber = document.getElementById('bonusNumber').value;
     
+    // 유효성 검사
     if (!roundNumber || !drawDate || !bonusNumber) {
         alert('모든 필드를 입력해주세요.');
         return;
@@ -531,32 +529,40 @@ async function addNewRound() {
         return;
     }
     
+    // 중복 검사
     const allNumbers = [...numbers, parseInt(bonusNumber)];
     if (new Set(allNumbers).size !== allNumbers.length) {
         alert('중복된 번호가 있습니다.');
         return;
     }
     
+    // 새 회차 데이터 생성
     const newRound = {
         round: parseInt(roundNumber),
         date: drawDate,
-        numbers: numbers.sort((a, b) => a - b),
+        numbers: numbers.sort((a, b) => a - b), // 오름차순 정렬
         bonus: parseInt(bonusNumber)
     };
     
+    // 기존 데이터 로드
     let data = loadLottoData();
     
+    // 중복 회차 확인
     const duplicateIndex = checkDuplicate(newRound.round, newRound.date);
     
     if (duplicateIndex !== -1) {
         const existingRound = data[duplicateIndex];
-        const message = `제 ${existingRound.round}회 (${formatDateDisplay(existingRound.date)}) 회차가 이미 존재합니다.\n데이터를 변경하시겠습니까?`;
+        const
+ message = `제 ${existingRound.round}회 (${formatDateDisplay(existingRound.date)}) 회차가 이미 존재합니다.\n데이터를 변경하시겠습니까?`;
         
         const shouldUpdate = await showModal(message);
         
         if (shouldUpdate) {
+            // 기존 데이터 업데이트
             data[duplicateIndex] = newRound;
+            // 회차 높은 순으로 정렬
             data = sortDataByRound(data);
+            // 15개만 유지
             if (data.length > 15) {
                 data = data.slice(0, 15);
             }
@@ -568,13 +574,18 @@ async function addNewRound() {
         return;
     }
     
+    // 새 회차 추가
     data.push(newRound);
+    
+    // 회차 높은 순으로 정렬
     data = sortDataByRound(data);
     
+    // 15개만 유지 (회차가 낮은 것 삭제)
     if (data.length > 15) {
         data = data.slice(0, 15);
     }
     
+    // 저장 및 렌더링
     saveLottoData(data);
     renderLottoList();
     clearInputFields();
@@ -597,6 +608,82 @@ function resetToInitialData() {
         renderLottoList();
         alert('초기 데이터로 리셋되었습니다.');
     }
+}
+
+// 데이터 내보내기 (JSON 파일로 다운로드)
+function exportData() {
+    const data = loadLottoData();
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `lotto_data_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    alert('데이터가 다운로드되었습니다!');
+}
+
+// 데이터 가져오기 (JSON 파일 업로드)
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            
+            // 데이터 유효성 검사
+            if (!Array.isArray(importedData)) {
+                alert('올바른 데이터 형식이 아닙니다.');
+                return;
+            }
+            
+            // 기존 데이터와 병합할지 물어보기
+            const shouldMerge = confirm('기존 데이터와 병합하시겠습니까?\n\n예: 병합 (중복 제거)\n아니오: 기존 데이터 삭제 후 가져오기');
+            
+            let finalData;
+            if (shouldMerge) {
+                const existingData = loadLottoData();
+                const mergedData = [...existingData, ...importedData];
+                
+                // 중복 제거 (회차 번호 기준)
+                const uniqueData = mergedData.reduce((acc, current) => {
+                    const exists = acc.find(item => item.round === current.round);
+                    if (!exists) {
+                        acc.push(current);
+                    }
+                    return acc;
+                }, []);
+                
+                finalData = sortDataByRound(uniqueData);
+            } else {
+                finalData = sortDataByRound(importedData);
+            }
+            
+            // 15개만 유지
+            if (finalData.length > 15) {
+                finalData = finalData.slice(0, 15);
+            }
+            
+            saveLottoData(finalData);
+            renderLottoList();
+            alert(`데이터를 성공적으로 가져왔습니다! (${finalData.length}개 회차)`);
+            
+        } catch (error) {
+            alert('파일을 읽는 중 오류가 발생했습니다.');
+            console.error(error);
+        }
+    };
+    reader.readAsText(file);
+    
+    // 파일 입력 초기화 (같은 파일 다시 선택 가능하도록)
+    event.target.value = '';
 }
 
 // 이벤트 리스너 등록
@@ -630,6 +717,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 리셋 버튼
     document.getElementById('resetButton').addEventListener('click', resetToInitialData);
+    
+    // 내보내기 버튼
+    document.getElementById('exportButton').addEventListener('click', exportData);
+    
+    // 가져오기 버튼
+    document.getElementById('importButton').addEventListener('click', function() {
+        document.getElementById('fileInput').click();
+    });
+    
+    // 파일 입력
+    document.getElementById('fileInput').addEventListener('change', importData);
     
     // 엔터키로 다음 입력 필드로 이동
     const numberInputs = document.querySelectorAll('.number-input');
