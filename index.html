@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로또 번호 생성기</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎰 로또 번호 생성기</h1>
+        
+        <!-- 최근 20회차 입력 섹션 -->
+        <div class="input-section">
+            <h2>최근 20회차 1등 번호 입력</h2>
+            <div id="drawInputs"></div>
+            <button id="analyzeBtn" class="btn-primary">분석 및 번호 생성</button>
+        </div>
+
+        <!-- 분석 결과 섹션 -->
+        <div id="analysisSection" class="analysis-section" style="display: none;">
+            <h2>📊 번호 분석 결과</h2>
+            
+            <div class="stats-container">
+                <div class="stat-box">
+                    <h3>자주 나온 번호 TOP 10</h3>
+                    <div id="frequentNumbers"></div>
+                </div>
+                <div class="stat-box">
+                    <h3>안 나온 번호</h3>
+                    <div id="rareNumbers"></div>
+                </div>
+            </div>
+
+            <!-- 마킹 용지 히트맵 -->
+            <div class="marking-sheet">
+                <h3>마킹 위치 히트맵</h3>
+                <div id="heatmap"></div>
+            </div>
+        </div>
+
+        <!-- 생성된 번호 섹션 -->
+        <div id="resultSection" class="result-section" style="display: none;">
+            <h2>🎲 생성된 로또 번호 (10세트)</h2>
+            <div id="generatedNumbers"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
