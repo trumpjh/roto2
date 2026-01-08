@@ -10,6 +10,12 @@
     <div class="container">
         <h1>🎱 로또 번호 관리 시스템</h1>
         
+        <!-- 동기화 상태 표시 -->
+        <div class="sync-status" id="syncStatus">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">연결 중...</span>
+        </div>
+
         <div class="add-section">
             <h2>새 회차 추가</h2>
             <div class="input-group">
@@ -46,9 +52,6 @@
 
         <div class="button-group">
             <button id="resetButton" class="btn-reset">초기 데이터로 리셋</button>
-            <button id="exportButton" class="btn-export">💾 데이터 내보내기</button>
-            <button id="importButton" class="btn-import">📂 데이터 가져오기</button>
-            <input type="file" id="fileInput" accept=".json" style="display: none;">
         </div>
     </div>
 
@@ -76,6 +79,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Firebase SDK를 type="module"로 로드 -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>

@@ -1,11 +1,40 @@
-// 로또 데이터 저장 키
-const STORAGE_KEY = 'lottoData';
+// Firebase 모듈 import
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { getDatabase, ref, set, get, onValue } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-// 기준 회차 정보 (1205회 = 2026년 1월 3일 토요일)
+// ⭐⭐⭐ 여기에 본인의 Firebase 설정을 붙여넣으세요! ⭐⭐⭐
+const firebaseConfig = {
+  apiKey: "AIzaSyAsvf984OZ3q4VvRHWGCyxUw-8ow3dGQ5w",
+  authDomain: "lotte01-131ea.firebaseapp.com",
+  databaseURL: "https://lotte01-131ea-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lotte01-131ea",
+  storageBucket: "lotte01-131ea.firebasestorage.app",
+  messagingSenderId: "176783709606",
+  appId: "1:176783709606:web:b5fd8ce5e3c1d78faeab67",
+  measurementId: "G-VHCSRFDLHG"
+};
+
+// Firebase 초기화
+let app, database;
+try {
+    app = initializeApp(firebaseConfig);
+    database = getDatabase(app);
+    updateSyncStatus('online', 'Firebase 연결됨 ✓');
+    console.log('✅ Firebase 연결 성공!');
+} catch (error) {
+    updateSyncStatus('offline', 'Firebase 연결 실패');
+    console.error('❌ Firebase 연결 오류:', error);
+    alert('Firebase 연결에 실패했습니다. 설정을 확인해주세요.');
+}
+
+// 데이터 저장 경로
+const DB_PATH = 'lottoData';
+
+// 기준 회차 정보
 const BASE_ROUND = 1205;
 const BASE_DATE = new Date('2026-01-03');
 
-// 초기 데이터 (2026년 1월 3일 기준 최근 15회차)
+// 초기 데이터
 const initialData = [
     { round: 1205, date: '2026-01-03', numbers: [7, 12, 19, 23, 31, 42], bonus: 15 },
     { round: 1204, date: '2025-12-27', numbers: [3, 8, 14, 22, 35, 41], bonus: 28 },
@@ -20,11 +49,73 @@ const initialData = [
     { round: 1195, date: '2025-10-25', numbers: [6, 13, 21, 27, 36, 43], bonus: 10 },
     { round: 1194, date: '2025-10-18', numbers: [4, 10, 18, 25, 33, 40], bonus: 22 },
     { round: 1193, date: '2025-10-11', numbers: [1, 9, 15, 24, 32, 39], bonus: 14 },
-    { round: 1192, date: '2025-10-04', numbers: [5, 11, 19, 28, 34, 42], bonus: 7 },
+    { round: 1192, date: '2025-10-04', numbers: [5, 11, 19, 28,34, 42], bonus: 7 },
     { round: 1191, date: '2025-09-27', numbers: [3, 12, 17, 26, 35, 45], bonus: 16 }
 ];
 
-// 회차 번호로 날짜 계산 (매주 토요일)
+// 동기화 상태 업데이트
+function updateSyncStatus(status, text) {
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    
+    if (statusDot && statusText) {
+        statusDot.className = `status-dot ${status}`;
+        statusText.textContent = text;
+    }
+}
+
+// Firebase에서 데이터 로드
+async function loadFromFirebase() {
+    try {
+        const dbRef = ref(database, DB_PATH);
+        const snapshot = await get(dbRef);
+        
+        if (snapshot.exists()) {
+            console.log('📥 Firebase에서 데이터 로드 성공');
+            return snapshot.val();
+        } else {
+            console.log('📭 Firebase에 데이터 없음 - 초기 데이터 사용');
+            return null;
+        }
+    } catch (error) {
+        console.error('❌ Firebase 로드 오류:', error);
+        updateSyncStatus('offline', 'Firebase 로드 실패');
+        return null;
+    }
+}
+
+// Firebase에 데이터 저장
+async function saveToFirebase(data) {
+    try {
+        const dbRef = ref(database, DB_PATH);
+        await set(dbRef, data);
+        console.log('💾 Firebase에 저장 완료');
+        updateSyncStatus('online', 'Firebase 동기화 완료 ✓');
+    } catch (error) {
+        console.error('❌ Firebase 저장 오류:', error);
+        updateSyncStatus('offline', 'Firebase 저장 실패');
+    }
+}
+
+// 로또 데이터 로드 (Firebase에서)
+async function loadLottoData() {
+    const firebaseData = await loadFromFirebase();
+    
+    if (firebaseData && firebaseData.length > 0) {
+        return firebaseData;
+    } else {
+        // Firebase에 데이터가 없으면 초기 데이터 저장
+        await saveToFirebase(initialData);
+        return initialData;
+    }
+}
+
+// 로또 데이터 저장 (Firebase에)
+async function saveLottoData(data) {
+    await saveToFirebase(data);
+}
+
+// 회차 번호로 날짜 계산
 function calculateDateFromRound(round) {
     const roundDiff = round - BASE_ROUND;
     const daysDiff = roundDiff * 7;
@@ -39,34 +130,18 @@ function calculateDateFromRound(round) {
     return `${year}-${month}-${day}`;
 }
 
-// 날짜를 YYYY. MM. DD. 형식으로 변환
+// 날짜 포맷 변환
 function formatDateDisplay(dateString) {
     const [year, month, day] = dateString.split('-');
     return `${year}. ${month}. ${day}.`;
 }
 
-// 로또 데이터 로드
-function loadLottoData() {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        return JSON.parse(stored);
-    } else {
-        saveLottoData(initialData);
-        return initialData;
-    }
-}
-
-// 로또 데이터 저장
-function saveLottoData(data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-// 데이터 정렬 (회차 높은 순)
+// 데이터 정렬
 function sortDataByRound(data) {
     return data.sort((a, b) => b.round - a.round);
 }
 
-// 번호에 따른 색상 클래스 반환
+// 번호 색상 클래스
 function getColorClass(number) {
     if (number <= 10) return 'color1';
     if (number <= 20) return 'color2';
@@ -76,16 +151,20 @@ function getColorClass(number) {
 }
 
 // 로또 목록 렌더링
-function renderLottoList() {
+async function renderLottoList() {
     const lottoList = document.getElementById('lottoList');
-    let data = loadLottoData();
+    let data = await loadLottoData();
     
-    // 회차 높은 순으로 정렬
     data = sortDataByRound(data);
     
     lottoList.innerHTML = '';
     
-    data.forEach((item, index) => {
+    if (data.length === 0) {
+        lottoList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">등록된 회차가 없습니다.</p>';
+        return;
+    }
+    
+    data.forEach((item) => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'lotto-item';
         itemDiv.dataset.round = item.round;
@@ -112,8 +191,8 @@ function renderLottoList() {
 }
 
 // 중복 회차 확인
-function checkDuplicate(round, date) {
-    const data = loadLottoData();
+async function checkDuplicate(round, date) {
+    const data = await loadLottoData();
     return data.findIndex(item => item.round === round || item.date === date);
 }
 
@@ -181,9 +260,9 @@ function showDeleteModal(message) {
     });
 }
 
-// 회차 삭제
-async function deleteRound(round) {
-    let data = loadLottoData();
+// 회차 삭제 (전역 함수로 선언)
+window.deleteRound = async function(round) {
+    let data = await loadLottoData();
     const item = data.find(d => d.round === round);
     
     if (!item) return;
@@ -192,9 +271,10 @@ async function deleteRound(round) {
     const shouldDelete = await showDeleteModal(message);
     
     if (shouldDelete) {
+        updateSyncStatus('online', '삭제 중...');
         data = data.filter(d => d.round !== round);
-        saveLottoData(data);
-        renderLottoList();
+        await saveLottoData(data);
+        await renderLottoList();
         alert('회차가 삭제되었습니다.');
     }
 }
@@ -237,15 +317,15 @@ async function addNewRound() {
     const newRound = {
         round: parseInt(roundNumber),
         date: drawDate,
-        numbers: numbers.sort((a, b) => a - b), // 오름차순 정렬
+        numbers: numbers.sort((a, b) => a - b),
         bonus: parseInt(bonusNumber)
     };
     
     // 기존 데이터 로드
-    let data = loadLottoData();
+    let data = await loadLottoData();
     
     // 중복 회차 확인
-    const duplicateIndex = checkDuplicate(newRound.round, newRound.date);
+    const duplicateIndex = await checkDuplicate(newRound.round, newRound.date);
     
     if (duplicateIndex !== -1) {
         const existingRound = data[duplicateIndex];
@@ -254,16 +334,14 @@ async function addNewRound() {
         const shouldUpdate = await showModal(message);
         
         if (shouldUpdate) {
-            // 기존 데이터 업데이트
+            updateSyncStatus('online', '업데이트 중...');
             data[duplicateIndex] = newRound;
-            // 회차 높은 순으로 정렬
             data = sortDataByRound(data);
-            // 15개만 유지
             if (data.length > 15) {
                 data = data.slice(0, 15);
             }
-            saveLottoData(data);
-            renderLottoList();
+            await saveLottoData(data);
+            await renderLottoList();
             clearInputFields();
             alert('회차 정보가 변경되었습니다.');
         }
@@ -271,19 +349,16 @@ async function addNewRound() {
     }
     
     // 새 회차 추가
+    updateSyncStatus('online', '저장 중...');
     data.push(newRound);
-    
-    // 회차 높은 순으로 정렬
     data = sortDataByRound(data);
     
-    // 15개만 유지 (회차가 낮은 것 삭제)
     if (data.length > 15) {
         data = data.slice(0, 15);
     }
     
-    // 저장 및 렌더링
-    saveLottoData(data);
-    renderLottoList();
+    await saveLottoData(data);
+    await renderLottoList();
     clearInputFields();
     
     alert('새 회차가 추가되었습니다!');
@@ -298,94 +373,28 @@ function clearInputFields() {
 }
 
 // 초기 데이터로 리셋
-function resetToInitialData() {
+async function resetToInitialData() {
     if (confirm('초기 데이터로 리셋하시겠습니까? 현재 데이터는 모두 삭제됩니다.')) {
-        saveLottoData(initialData);
-        renderLottoList();
+        updateSyncStatus('online', '리셋 중...');
+        await saveLottoData(initialData);
+        await renderLottoList();
         alert('초기 데이터로 리셋되었습니다.');
     }
 }
 
-// 데이터 내보내기 (JSON 파일로 다운로드)
-function exportData() {
-    const data = loadLottoData();
-    const dataStr = JSON.stringify(data, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `lotto_data_${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    alert('데이터가 다운로드되었습니다!');
-}
-
-// 데이터 가져오기 (JSON 파일 업로드)
-function importData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const importedData = JSON.parse(e.target.result);
-            
-            // 데이터 유효성 검사
-            if (!Array.isArray(importedData)) {
-                alert('올바른 데이터 형식이 아닙니다.');
-                return;
-            }
-            
-            // 기존 데이터와 병합할지 물어보기
-            const shouldMerge = confirm('기존 데이터와 병합하시겠습니까?\n\n예: 병합 (중복 제거)\n아니오: 기존 데이터 삭제 후 가져오기');
-            
-            let finalData;
-            if (shouldMerge) {
-                const existingData = loadLottoData();
-                const mergedData = [...existingData, ...importedData];
-                
-                // 중복 제거 (회차 번호 기준)
-                const uniqueData = mergedData.reduce((acc, current) => {
-                    const exists = acc.find(item => item.round === current.round);
-                    if (!exists) {
-                        acc.push(current);
-                    }
-                    return acc;
-                }, []);
-                
-                finalData = sortDataByRound(uniqueData);
-            } else {
-                finalData = sortDataByRound(importedData);
-            }
-            
-            // 15개만 유지
-            if (finalData.length > 15) {
-                finalData = finalData.slice(0, 15);
-            }
-            
-            saveLottoData(finalData);
-            renderLottoList();
-            alert(`데이터를 성공적으로 가져왔습니다! (${finalData.length}개 회차)`);
-            
-        } catch (error) {
-            alert('파일을 읽는 중 오류가 발생했습니다.');
-            console.error(error);
-        }
-    };
-    reader.readAsText(file);
-    
-    // 파일 입력 초기화 (같은 파일 다시 선택 가능하도록)
-    event.target.value = '';
-}
-
 // 이벤트 리스너 등록
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // 초기 렌더링
-    renderLottoList();
+    await renderLottoList();
+    
+    // Firebase 실시간 동기화 설정
+    const dbRef = ref(database, DB_PATH);
+    onValue(dbRef, (snapshot) => {
+        if (snapshot.exists()) {
+            console.log('🔄 Firebase 데이터 변경 감지');
+            renderLottoList();
+        }
+    });
     
     // 회차 번호 입력 시 자동으로 날짜 계산
     document.getElementById('roundNumber').addEventListener('input', function() {
@@ -403,17 +412,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 리셋 버튼
     document.getElementById('resetButton').addEventListener('click', resetToInitialData);
-    
-    // 내보내기 버튼
-    document.getElementById('exportButton').addEventListener('click', exportData);
-    
-    // 가져오기 버튼
-    document.getElementById('importButton').addEventListener('click', function() {
-        document.getElementById('fileInput').click();
-    });
-    
-    // 파일 입력
-    document.getElementById('fileInput').addEventListener('change', importData);
     
     // 엔터키로 다음 입력 필드로 이동
     const numberInputs = document.querySelectorAll('.number-input');
@@ -454,5 +452,4 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.value < 0) this.value = '';
         });
     });
-});
-
+}); 
