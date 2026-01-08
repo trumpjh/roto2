@@ -45,6 +45,58 @@
             <button id="addButton" class="btn-add">회차 추가</button>
         </div>
 
+        <!-- 로또 번호 생성기 섹션 -->
+        <div class="generator-section">
+            <h2>🎲 AI 로또 번호 생성기</h2>
+            <p class="generator-desc">저장된 당첨 번호를 분석하여 10개의 추천 번호를 생성합니다.</p>
+            <button id="generateButton" class="btn-generate">번호 생성하기</button>
+            
+            <div id="generatedNumbers" class="generated-numbers" style="display: none;">
+                <h3>생성된 추천 번호</h3>
+                <div id="recommendList" class="recommend-list"></div>
+            </div>
+        </div>
+
+        <!-- 당첨 번호 마킹 분석 -->
+        <div class="analysis-section" style="display: none;" id="analysisSection">
+            <h2>📊 당첨 번호 마킹 분석</h2>
+            <div class="lotto-sheet">
+                <div class="sheet-row">
+                    <span class="row-label">1행</span>
+                    <div class="sheet-numbers" id="row1"></div>
+                </div>
+                <div class="sheet-row">
+                    <span class="row-label">2행</span>
+                    <div class="sheet-numbers" id="row2"></div>
+                </div>
+                <div class="sheet-row">
+                    <span class="row-label">3행</span>
+                    <div class="sheet-numbers" id="row3"></div>
+                </div>
+                <div class="sheet-row">
+                    <span class="row-label">4행</span>
+                    <div class="sheet-numbers" id="row4"></div>
+                </div>
+                <div class="sheet-row">
+                    <span class="row-label">5행</span>
+                    <div class="sheet-numbers" id="row5"></div>
+                </div>
+                <div class="sheet-row">
+                    <span class="row-label">6행</span>
+                    <div class="sheet-numbers" id="row6"></div>
+                </div>
+                <div class="sheet-row">
+                    <span class="row-label">7행</span>
+                    <div class="sheet-numbers" id="row7"></div>
+                </div>
+            </div>
+            <div class="analysis-legend">
+                <span><span class="legend-box high"></span> 자주 나온 번호</span>
+                <span><span class="legend-box medium"></span> 보통</span>
+                <span><span class="legend-box low"></span> 적게 나온 번호</span>
+            </div>
+        </div>
+
         <div class="list-section">
             <h2>최근 15회차 당첨 번호</h2>
             <div id="lottoList" class="lotto-list"></div>
@@ -79,7 +131,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK를 type="module"로 로드 -->
     <script type="module" src="script.js"></script>
 </body>
 </html>

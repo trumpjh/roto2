@@ -1,3 +1,46 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+}
+
+h2 {
+    color: #555;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+    border-bottom: 3px solid #667eea;
+    padding-bottom: 10px;
+}
+
+h3 {
+    color: #666;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
 /* 동기화 상태 표시 */
 .sync-status {
     background: white;
@@ -37,48 +80,21 @@
     font-size: 0.95em;
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-h1 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 30px;
-    font-size: 2.5em;
-}
-
-h2 {
-    color: #555;
-    margin-bottom: 20px;
-    font-size: 1.5em;
-    border-bottom: 3px solid #667eea;
-    padding-bottom: 10px;
-}
-
-.add-section {
+.add-section, .generator-section, .analysis-section {
     background: #f8f9fa;
     padding: 25px;
     border-radius: 15px;
     margin-bottom: 30px;
+}
+
+.generator-section {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+}
+
+.generator-desc {
+    color: #555;
+    margin-bottom: 20px;
+    font-size: 1.05em;
 }
 
 .input-group {
@@ -144,7 +160,7 @@ h2 {
     max-width: 200px;
 }
 
-.btn-add, .btn-reset, .btn-export, .btn-import {
+.btn-add, .btn-reset, .btn-generate {
     padding: 15px 30px;
     font-size: 16px;
     font-weight: 600;
@@ -166,6 +182,19 @@ h2 {
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
+.btn-generate {
+    background: #e17055;
+    color: white;
+    width: 100%;
+    font-size: 18px;
+}
+
+.btn-generate:hover {
+    background: #d63031;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(225, 112, 85, 0.4);
+}
+
 .btn-reset {
     background: #dc3545;
     color: white;
@@ -179,16 +208,163 @@ h2 {
     box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
 }
 
-.btn-export, .btn-import {
-    background: #3498db;
-    color: white;
-    padding: 12px 25px;
-    margin: 10px 5px;
+/* 생성된 번호 스타일 */
+.generated-numbers {
+    margin-top: 25px;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
 }
 
-.btn-export:hover, .btn-import:hover {
-    background: #2980b9;
-    transform: translateY(-2px);
+.recommend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.recommend-item {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.recommend-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.recommend-title {
+    font-weight: 700;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.recommend-type {
+    font-size: 0.85em;
+    padding: 4px 12px;
+    border-radius: 20px;
+    color: white;
+    font-weight: 600;
+}
+
+.type-rare {
+    background: #6c5ce7;
+}
+
+.type-frequent {
+    background: #00b894;
+}
+
+.type-mixed {
+    background: #fdcb6e;
+    color: #333;
+}
+
+.type-position {
+    background: #e17055;
+}
+
+.recommend-numbers {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* 로또 용지 마킹 스타일 */
+.lotto-sheet {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.sheet-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.row-label {
+    font-weight: 700;
+    color: #555;
+    width: 50px;
+    font-size: 0.9em;
+}
+
+.sheet-numbers {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+.sheet-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    border: 2px solid #ddd;
+    background: white;
+    color: #999;
+    transition: all 0.3s;
+}
+
+.sheet-number.marked {
+    color: white;
+    border: none;
+}
+
+.sheet-number.high {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.sheet-number.medium {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+
+.sheet-number.low {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+}
+
+.analysis-legend {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 20px;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+}
+
+.legend-box {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.legend-box.high {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.legend-box.medium {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+
+.legend-box.low {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
 }
 
 .list-section {
@@ -409,6 +585,12 @@ h2 {
         font-size: 16px;
     }
 
+    .sheet-number {
+        width: 35px;
+        height: 35px;
+        font-size: 12px;
+    }
+
     .modal-content {
         padding: 20px;
     }
@@ -431,5 +613,16 @@ h2 {
         flex-direction: column;
         align-items: flex-start;
         gap: 5px;
+    }
+
+    .analysis-legend {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .recommend-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
     }
 }
