@@ -13,16 +13,24 @@ const firebaseConfig = {
   appId: "1:176783709606:web:b5fd8ce5e3c1d78faeab67",
   measurementId: "G-VHCSRFDLHG"
 };
+
+console.log('🔧 Firebase 초기화 시작...');
+
 // Firebase 초기화
 let app, database;
+let isConnected = false;
+
 try {
     app = initializeApp(firebaseConfig);
     database = getDatabase(app);
+    isConnected = true;
     updateSyncStatus('online', 'Firebase 연결됨 ✓');
     console.log('✅ Firebase 연결 성공!');
 } catch (error) {
+    isConnected = false;
     updateSyncStatus('offline', 'Firebase 연결 실패');
     console.error('❌ Firebase 연결 오류:', error);
+    alert('Firebase 연결에 실패했습니다.\n\n오류: ' + error.message + '\n\n설정을 확인해주세요.');
 }
 
 const DB_PATH = 'lottoData';
@@ -40,16 +48,26 @@ function updateSyncStatus(status, text) {
 
 // Firebase에서 데이터 로드
 async function loadFromFirebase() {
+    if (!isConnected) {
+        console.error('❌ Firebase 연결 안됨');
+        return [];
+    }
+    
     try {
+        console.log('📥 Firebase에서 데이터 로드 시도...');
         const dbRef = ref(database, DB_PATH);
         const snapshot = await get(dbRef);
         
         if (snapshot.exists()) {
+            console.log('✅ 데이터 로드 성공:', snapshot.val().length, '개');
             return snapshot.val();
+        } else {
+            console.log('📭 Firebase에 데이터 없음');
+            return [];
         }
-        return [];
     } catch (error) {
-        console.error('Firebase 로드 오류:', error);
+        console.error('❌ Firebase 로드 오류:', error);
+        updateSyncStatus('offline', 'Firebase 로드 실패');
         return [];
     }
 }
@@ -69,8 +87,7 @@ async function analyzeNumbers() {
     const frequency = {};
     
     for (let i = 1; i <= 45; i++) {
-        frequency
-[i] = 0;
+        frequency[i] = 0;
     }
     
     data.forEach(item => {
@@ -102,6 +119,8 @@ async function renderMarkingAnalysis() {
     
     for (let row = 1; row <= 7; row++) {
         const rowElement = document.getElementById(`row${row}`);
+        if (!rowElement) continue;
+        
         rowElement.innerHTML = '';
         
         let start, end;
@@ -134,7 +153,10 @@ async function renderMarkingAnalysis() {
         }
     }
     
-    document.getElementById('analysisSection').style.display = 'block';
+    const analysisSection = document.getElementById('analysisSection');
+    if (analysisSection) {
+        analysisSection.style.display = 'block';
+    }
 }
 
 // 로또 번호 생성 함수들
@@ -233,6 +255,7 @@ function getRandomNumbers(arr, count) {
 
 // 로또 번호 10개 생성
 async function generateLottoNumbers() {
+    console.log('🎲 로또 번호 생성 시작...');
     const recommendations = [];
     
     // 1-2: 안나온 번호 위주 (2개)
@@ -303,13 +326,21 @@ async function generateLottoNumbers() {
         numbers: await generatePositionBasedNumbers()
     });
     
+    console.log('✅ 로또 번호 생성 완료');
     return recommendations;
 }
 
 // 추천 번호 렌더링
 async function renderRecommendations() {
+    console.log('📝 추천 번호 렌더링 시작...');
+    
     const recommendations = await generateLottoNumbers();
     const recommendList = document.getElementById('recommendList');
+    
+    if (!recommendList) {
+        console.error('❌ recommendList 요소를 찾을 수 없습니다');
+        return;
+    }
     
     recommendList.innerHTML = '';
     
@@ -334,23 +365,38 @@ async function renderRecommendations() {
         recommendList.appendChild(itemDiv);
     });
     
-    document.getElementById('generatedNumbers').style.display = 'block';
+    const generatedNumbers = document.getElementById('generatedNumbers');
+    if (generatedNumbers) {
+        generatedNumbers.style.display = 'block';
+    }
     
     await renderMarkingAnalysis();
     
-    document.getElementById('generatedNumbers').scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'nearest' 
-    });
+    const scrollTarget = document.getElementById('generatedNumbers');
+    if (scrollTarget) {
+        scrollTarget.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'nearest' 
+        });
+    }
+    
+    console.log('✅ 추천 번호 렌더링 완료');
 }
 
 // 최근 당첨 번호 미리보기
 async function renderPreview() {
+    console.log('📋 미리보기 렌더링 시작...');
+    
     const data = await loadFromFirebase();
     const previewList = document.getElementById('previewList');
     
+    if (!previewList) {
+        console.error('❌ previewList 요소를 찾을 수 없습니다');
+        return;
+    }
+    
     if (data.length === 0) {
-        previewList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">등록된 회차가 없습니다.</p>';
+        previewList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">등록된 회차가 없습니다.<br><a href="index.html">번호 관리 페이지</a>에서 회차를 추가해주세요.</p>';
         return;
     }
     
@@ -377,20 +423,54 @@ async function renderPreview() {
         
         previewList.appendChild(itemDiv);
     });
+    
+    console.log('✅ 미리보기 렌더링 완료');
 }
 
 // 이벤트 리스너 등록
 document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 페이지 로드 완료');
+    
+    // Firebase 연결 확인
+    if (!isConnected) {
+        alert('Firebase 연결에 실패했습니다.\n\nFirebase 설정을 확인해주세요:\n1. firebaseConfig가 올바른지 확인\n2. Firebase Realtime Database가 생성되었는지 확인\n3. 보안 규칙이 올바른지 확인');
+        return;
+    }
+    
     // 미리보기 렌더링
     await renderPreview();
     
     // 번호 생성 버튼
-    document.getElementById('generateButton').addEventListener('click', async function() {
-        const data = await loadFromFirebase();
-        if (data.length === 0) {
-            alert('분석할 데이터가 없습니다.\n먼저 "번호 관리" 페이지에서 회차를 추가해주세요.');
-            return;
-        }
-        await renderRecommendations();
-    });
+    const generateButton = document.getElementById('generateButton');
+    if (generateButton) {
+        generateButton.addEventListener('click', async function() {
+            console.log('🎲 번호 생성 버튼 클릭');
+            
+            const data = await loadFromFirebase();
+            if (data.length === 0) {
+                alert('분석할 데이터가 없습니다.\n\n먼저 "번호 관리" 페이지에서 회차를 추가해주세요.');
+                return;
+            }
+            
+            // 버튼 비활성화 (중복 클릭 방지)
+            generateButton.disabled = true;
+            generateButton.textContent = '생성 중...';
+            
+            try {
+                await renderRecommendations();
+            } catch (error) {
+                console.error('❌ 번호 생성 오류:', error);
+                alert('번호 생성 중 오류가 발생했습니다.\n\n' + error.message);
+            } finally {
+                // 버튼 다시 활성화
+                generateButton.disabled = false;
+                generateButton.textContent = '번호 생성하기';
+            }
+        });
+    } else {
+        console.error('❌ generateButton 요소를 찾을 수 없습니다');
+    }
+    
+    console.log('✅ 이벤트 리스너 등록 완료');
 });
+
