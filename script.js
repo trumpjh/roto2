@@ -4,13 +4,14 @@ import { getDatabase, ref, set, get, onValue } from 'https://www.gstatic.com/fir
 
 // ⭐⭐⭐ 여기에 본인의 Firebase 설정을 붙여넣으세요! ⭐⭐⭐
 const firebaseConfig = {
-    apiKey: "여기에_본인의_API_KEY를_붙여넣으세요",
-    authDomain: "여기에_본인의_AUTH_DOMAIN을_붙여넣으세요",
-    databaseURL: "여기에_본인의_DATABASE_URL을_붙여넣으세요",
-    projectId: "여기에_본인의_PROJECT_ID를_붙여넣으세요",
-    storageBucket: "여기에_본인의_STORAGE_BUCKET을_붙여넣으세요",
-    messagingSenderId: "여기에_본인의_MESSAGING_SENDER_ID를_붙여넣으세요",
-    appId: "여기에_본인의_APP_ID를_붙여넣으세요"
+  apiKey: "AIzaSyAsvf984OZ3q4VvRHWGCyxUw-8ow3dGQ5w",
+  authDomain: "lotte01-131ea.firebaseapp.com",
+  databaseURL: "https://lotte01-131ea-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "lotte01-131ea",
+  storageBucket: "lotte01-131ea.firebasestorage.app",
+  messagingSenderId: "176783709606",
+  appId: "1:176783709606:web:b5fd8ce5e3c1d78faeab67",
+  measurementId: "G-VHCSRFDLHG"
 };
 
 // Firebase 초기화
