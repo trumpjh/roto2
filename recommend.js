@@ -152,64 +152,73 @@ function ensureUniqueAndSort(numbers) {
 }
 
 // ========================================
-// 새로운 추천 알고리즘 (확률 기반)
+// 개선된 복합 조건 추천 알고리즘
 // ========================================
 
-// 1. 홀짝 균형 조합 (홀수 3개, 짝수 3개)
-async function generateOddEvenBalance() {
-    const { frequency } = await analyzeNumbers();
-    const odds = [];
-    const evens = [];
-    
-    for (let i = 1; i <= 45; i++) {
-        if (i % 2 === 0) {
-            evens.push({ num: i, freq: frequency[i] });
-        } else {
-            odds.push({ num: i, freq: frequency[i] });
+// 번호 검증 함수들
+function checkOddEvenRatio(numbers) {
+    const oddCount = numbers.filter(n => n % 2 === 1).length;
+    const evenCount = 6 - oddCount;
+    return { odd: oddCount, even: evenCount };
+}
+
+function checkRangeDistribution(numbers) {
+    const ranges = {
+        range1: numbers.filter(n => n >= 1 && n <= 15).length,   // 1-15
+        range2: numbers.filter(n => n >= 16 && n <= 30).length,  // 16-30
+        range3: numbers.filter(n => n >= 31 && n <= 45).length   // 31-45
+    };
+    return ranges;
+}
+
+function hasConsecutive(numbers) {
+    const sorted = [...numbers].sort((a, b) => a - b);
+    for (let i = 0; i < sorted.length - 1; i++) {
+        if (sorted[i + 1] - sorted[i] === 1) {
+            return true;
         }
     }
-    
-    // 빈도수 기반 정렬
-    odds.sort((a, b) => b.freq - a.freq);
-    evens.sort((a, b) => b.freq - a.freq);
-    
-    // 상위 15개에서 랜덤 선택
-    const oddCandidates = odds.slice(0, 15).map(item => item.num);
-    const evenCandidates = evens.slice(0, 15).map(item => item.num);
-    
-    const selectedOdds = getRandomNumbers(oddCandidates, 3);
-    const selectedEvens = getRandomNumbers(evenCandidates, 3);
-    
-    return ensureUniqueAndSort([...selectedOdds, ...selectedEvens]);
+    return false;
 }
 
-// 2. 구간 분산 조합 (1-15, 16-30, 31-45 각 구간에서 2개씩)
-async function generateRangeDistribution() {
-    const { frequency } = await analyzeNumbers();
-    const range1 = []; // 1-15
-    const range2 = []; // 16-30
-    const range3 = []; // 31-45
-    
-    for (let i = 1; i <= 45; i++) {
-        if (i <= 15) range1.push({ num: i, freq: frequency[i] });
-        else if (i <= 30) range2.push({ num: i, freq: frequency[i] });
-        else range3.push({ num: i, freq: frequency[i] });
-    }
-    
-    // 각 구간에서 빈도수 높은 순으로 정렬
-    range1.sort((a, b) => b.freq - a.freq);
-    range2.sort((a, b) => b.freq - a.freq);
-    range3.sort((a, b) => b.freq - a.freq);
-    
-    const selected1 = getRandomNumbers(range1.slice(0, 10).map(item => item.num), 2);
-    const selected2 = getRandomNumbers(range2.slice(0, 10).map(item => item.num), 2);
-    const selected3 = getRandomNumbers(range3.slice(0, 10).map(item => item.num), 2);
-    
-    return ensureUniqueAndSort([...selected1, ...selected2, ...selected3]);
+function hasSameLastDigit(numbers) {
+    const lastDigits = numbers.map(n => n % 10);
+    return new Set(lastDigits).size < lastDigits.length;
 }
 
-// 3. 합계 범위 최적화 (합계 120-160 사이)
-async function generateSumOptimized() {
+function calculateSum(numbers) {
+    return numbers.reduce((a, b) => a + b, 0);
+}
+
+// 복합 조건 검증
+function validateCombination(numbers, criteria) {
+    const oddEven = checkOddEvenRatio(numbers);
+    const ranges = checkRangeDistribution(numbers);
+    const sum = calculateSum(numbers);
+    
+    // 홀짝 비율 체크
+    const oddEvenValid = criteria.oddEvenRatios.some(ratio => 
+        oddEven.odd === ratio.odd && oddEven.even === ratio.even
+    );
+    
+    // 구간 분산 체크 (각 구간에 최소 1개 이상)
+    const rangeValid = ranges.range1 >= 1 && ranges.range2 >= 1 && ranges.range3 >= 1;
+    
+    // 연속 번호 체크
+    const consecutiveValid = criteria.allowConsecutive || !hasConsecutive(numbers);
+    
+    // 끝자리 중복 체크
+    const lastDigitValid = criteria.allowSameLastDigit || !hasSameLastDigit(numbers);
+    
+    // 합계 범위 체크
+    const sumValid = !criteria.sumRange || 
+        (sum >= criteria.sumRange.min && sum <= criteria.sumRange.max);
+    
+    return oddEvenValid && rangeValid && consecutiveValid && lastDigitValid && sumValid;
+}
+
+// 스마트 번호 생성기 (복합 조건)
+async function generateSmartCombination(criteria) {
     const { frequency } = await analyzeNumbers();
     const allNumbers = [];
     
@@ -217,174 +226,152 @@ async function generateSumOptimized() {
         allNumbers.push({ num: i, freq: frequency[i] });
     }
     
-    allNumbers.sort((a, b) => b.freq - a.freq);
+    // 빈도수 기반 가중치 정렬
+    if (criteria.preferFrequent) {
+        allNumbers.sort((a, b) => b.freq - a.freq);
+    } else if (criteria.preferRare) {
+        allNumbers.sort((a, b) => a.freq - b.freq);
+    } else {
+        allNumbers.sort(() => Math.random() - 0.5);
+    }
     
     let attempts = 0;
-    while (attempts < 100) {
-        const candidates = getRandomNumbers(allNumbers.slice(0, 25).map(item => item.num), 6);
-        const sum = candidates.reduce((a, b) => a + b, 0);
+    const maxAttempts = 1000;
+    
+    while (attempts < maxAttempts) {
+        const candidates = [];
+        const usedRanges = { range1: 0, range2: 0, range3: 0 };
         
-        if (sum >= 120 && sum <= 160) {
-            return ensureUniqueAndSort(candidates);
+        // 각 구간에서 최소 1개씩 선택
+        const range1Nums = allNumbers.filter(item => item.num >= 1 && item.num <= 15);
+        const range2Nums = allNumbers.filter(item => item.num >= 16 && item.num <= 30);
+        const range3Nums = allNumbers.filter(item => item.num >= 31 && item.num <= 45);
+        
+        // 각 구간에서 1개씩 선택
+        if (range1Nums.length > 0) {
+            const pick = range1Nums[Math.floor(Math.random() * Math.min(10, range1Nums.length))].num;
+            candidates.push(pick);
         }
-        attempts++;
-    }
-    
-    // 실패 시 기본 조합
-    return ensureUniqueAndSort(getRandomNumbers(allNumbers.slice(0, 20).map(item => item.num), 6));
-}
-
-// 4. 연속 번호 회피 조합
-async function generateNonConsecutive() {
-    const { frequency } = await analyzeNumbers();
-    const allNumbers = [];
-    
-    for (let i = 1; i <= 45; i++) {
-        allNumbers.push({ num: i, freq: frequency[i] });
-    }
-    
-    allNumbers.sort((a, b) => b.freq - a.freq);
-    
-    let attempts = 0;
-    while (attempts < 100) {
-        const candidates = getRandomNumbers(allNumbers.slice(0, 30).map(item => item.num), 6);
-        const sorted = candidates.sort((a, b) => a - b);
         
-        let hasConsecutive = false;
-        for (let i = 0; i < sorted.length - 1; i++) {
-            if (sorted[i + 1] - sorted[i] === 1) {
-                hasConsecutive = true;
-                break;
+        if (range2Nums.length > 0) {
+            const pick = range2Nums[Math.floor(Math.random() * Math.min(10, range2Nums.length))].num;
+            if (!candidates.includes(pick)) candidates.push(pick);
+        }
+        
+        if (range3Nums.length > 0) {
+            const pick = range3Nums[Math.floor(Math.random() * Math.min(10, range3Nums.length))].num;
+            if (!candidates.includes(pick)) candidates.push(pick);
+        }
+        
+        // 나머지 번호 채우기
+        while (candidates.length < 6) {
+            const randomIndex = Math.floor(Math.random() * Math.min(30, allNumbers.length));
+            const pick = allNumbers[randomIndex].num;
+            if (!candidates.includes(pick)) {
+                candidates.push(pick);
             }
         }
         
-        if (!hasConsecutive) {
+        // 조건 검증
+        if (validateCombination(candidates, criteria)) {
             return ensureUniqueAndSort(candidates);
         }
+        
         attempts++;
     }
     
-    // 실패 시 기본 조합
-    return ensureUniqueAndSort(getRandomNumbers(allNumbers.slice(0, 20).map(item => item.num), 6));
+    // 실패 시 기본 조합 반환
+    console.warn('조건을 만족하는 조합을 찾지 못했습니다. 기본 조합을 반환합니다.');
+    return ensureUniqueAndSort(getRandomNumbers(allNumbers.slice(0, 30).map(item => item.num), 6));
 }
 
-// 5. 끝자리 분산 조합 (끝자리 0-9 골고루)
-async function generateLastDigitDistribution() {
-    const { frequency } = await analyzeNumbers();
-    const digitGroups = {};
-    
-    for (let i = 0; i <= 9; i++) {
-        digitGroups[i] = [];
-    }
-    
-    for (let i = 1; i <= 45; i++) {
-        const lastDigit = i % 10;
-        digitGroups[lastDigit].push({ num: i, freq: frequency[i] });
-    }
-    
-    // 각 끝자리 그룹에서 빈도수 높은 순 정렬
-    for (let digit in digitGroups) {
-        digitGroups[digit].sort((a, b) => b.freq - a.freq);
-    }
-    
-    const selected = [];
-    const usedDigits = new Set();
-    
-    // 6개의 서로 다른 끝자리 선택
-    let attempts = 0;
-    while (selected.length < 6 && attempts < 100) {
-        const digit = Math.floor(Math.random() * 10);
-        if (!usedDigits.has(digit) && digitGroups[digit].length > 0) {
-            const candidates = digitGroups[digit].slice(0, 3).map(item => item.num);
-            const pick = candidates[Math.floor(Math.random() * candidates.length)];
-            if (!selected.includes(pick)) {
-                selected.push(pick);
-                usedDigits.add(digit);
-            }
-        }
-        attempts++;
-    }
-    
-    // 6개가 안되면 채우기
-    while (selected.length < 6) {
-        const randomNum = Math.floor(Math.random() * 45) + 1;
-        if (!selected.includes(randomNum)) {
-            selected.push(randomNum);
-        }
-    }
-    
-    return ensureUniqueAndSort(selected);
-}
-
-// 6. 통합 균형 조합 (자주 나온 번호 + 안 나온 번호 + 위치 분석)
-async function generateBalancedCombination() {
-    const { frequency } = await analyzeNumbers();
-    const allNumbers = [];
-    
-    for (let i = 1; i <= 45; i++) {
-        allNumbers.push({ num: i, freq: frequency[i] });
-    }
-    
-    // 빈도수로 정렬
-    allNumbers.sort((a, b) => b.freq - a.freq);
-    
-    // 자주 나온 번호 2개
-    const frequent = getRandomNumbers(allNumbers.slice(0, 10).map(item => item.num), 2);
-    
-    // 안 나온 번호 2개
-    const rare = getRandomNumbers(allNumbers.slice(-10).map(item => item.num), 2);
-    
-    // 중간 빈도 번호 2개
-    const mid = getRandomNumbers(allNumbers.slice(15, 30).map(item => item.num), 2);
-    
-    return ensureUniqueAndSort([...frequent, ...rare, ...mid]);
-}
-
-// 7. 위치 기반 균형 조합 (각 행에서 골고루)
-async function generatePositionBalanced() {
-    const { frequency } = await analyzeNumbers();
-    const rowGroups = {};
-    
-    for (let row = 1; row <= 7; row++) {
-        rowGroups[row] = [];
-    }
-    
-    for (let num = 1; num<= 45; num++) {
-        const row = getRowForNumber(num);
-        rowGroups[row].push({ num, freq: frequency[num] });
-    }
-    
-    // 각 행에서 빈도수 높은 순 정렬
-    for (let row in rowGroups) {
-        rowGroups[row].sort((a, b) => b.freq - a.freq);
-    }
-    
-    const selected = [];
-    const rowsToSelect = [1, 2, 3, 4, 5, 6]; // 6개 행에서 각 1개씩
-    
-    rowsToSelect.forEach(row => {
-        const candidates = rowGroups[row].slice(0, 5).map(item => item.num);
-        const pick = candidates[Math.floor(Math.random() * candidates.length)];
-        if (!selected.includes(pick)) {
-            selected.push(pick);
-        }
+// 1. 홀짝 2:4 + 구간 분산 + 연속/끝자리 회피
+async function generateType1() {
+    return await generateSmartCombination({
+        oddEvenRatios: [{ odd: 2, even: 4 }],
+        allowConsecutive: false,
+        allowSameLastDigit: false,
+        sumRange: { min: 100, max: 180 },
+        preferFrequent: false
     });
-    
-    // 6개가 안되면 채우기
-    while (selected.length < 6) {
-        const randomNum = Math.floor(Math.random() * 45) + 1;
-        if (!selected.includes(randomNum)) {
-            selected.push(randomNum);
-        }
-    }
-    
-    return ensureUniqueAndSort(selected);
 }
 
-// 8. 최근 트렌드 반영 조합 (최근 5회차 집중 분석)
-async function generateRecentTrend() {
+// 2. 홀짝 3:3 + 구간 분산 + 연속/끝자리 회피
+async function generateType2() {
+    return await generateSmartCombination({
+        oddEvenRatios: [{ odd: 3, even: 3 }],
+        allowConsecutive: false,
+        allowSameLastDigit: false,
+        sumRange: { min: 110, max: 170 },
+        preferFrequent: false
+    });
+}
+
+// 3. 홀짝 4:2 + 구간 분산 + 연속/끝자리 회피
+async function generateType3() {
+    return await generateSmartCombination({
+        oddEvenRatios: [{ odd: 4, even: 2 }],
+        allowConsecutive: false,
+        allowSameLastDigit: false,
+        sumRange: { min: 120, max: 160 },
+        preferFrequent: false
+    });
+}
+
+// 4. 홀짝 2:4 + 구간 분산 + 자주 나온 번호 위주
+async function generateType4() {
+    return await generateSmartCombination({
+        oddEvenRatios: [{ odd: 2, even: 4 }],
+        allowConsecutive: false,
+        allowSameLastDigit: false,
+        sumRange: { min: 100, max: 180 },
+        preferFrequent: true
+    });
+}
+
+// 5. 홀짝 3:3 + 구간 분산 + 자주 나온 번호 위주
+async function generateType5() {
+    return await generateSmartCombination({
+        oddEvenRatios: [{ odd: 3, even: 3 }],
+        allowConsecutive: false,
+        allowSameLastDigit: false,
+        sumRange: { min: 110, max: 170 },
+        preferFrequent: true
+    });
+}
+
+// 6. 홀짝 4:2 + 구간 분산 + 안 나온 번호 위주
+async function generateType6() {
+    return await generateSmartCombination({
+        oddEvenRatios: [{ odd: 4, even: 2 }],
+        allowConsecutive: false,
+        allowSameLastDigit: false,
+        sumRange: { min: 120, max: 160 },
+        preferRare: true
+    });
+}
+
+// 7. 홀짝 2:4/3:3/4:2 혼합 + 위치 분석
+async function generateType7() {
+    const ratios = [
+        { odd: 2, even: 4 },
+        { odd: 3, even: 3 },
+        { odd: 4, even: 2 }
+    ];
+    
+    return await generateSmartCombination({
+        oddEvenRatios: ratios,
+        allowConsecutive: false,
+        allowSameLastDigit: false,
+        sumRange: { min: 110, max: 170 },
+        preferFrequent: false
+    });
+}
+
+// 8. 홀짝 3:3 + 구간 균형 + 최근 트렌드
+async function generateType8() {
     const data = await loadFromFirebase();
-    const recentData = data.slice(0, 5); // 최근 5회차
+    const recentData = data.slice(0, 5);
     const recentFreq = {};
     
     for (let i = 1; i <= 45; i++) {
@@ -397,154 +384,121 @@ async function generateRecentTrend() {
         });
     });
     
-    const allNumbers = [];
-    for (let i = 1; i <= 45; i++) {
-        allNumbers.push({ num: i, freq: recentFreq[i] });
-    }
-    
-    // 최근 자주 나온 번호 3개
-    allNumbers.sort((a, b) => b.freq - a.freq);
-    const hot = getRandomNumbers(allNumbers.slice(0, 12).map(item => item.num), 3);
-    
-    // 최근 안 나온 번호 3개
-    const cold = getRandomNumbers(allNumbers.slice(-15).map(item => item.num), 3);
-    
-    return ensureUniqueAndSort([...hot, ...cold]);
+    return await generateSmartCombination({
+        oddEvenRatios: [{ odd: 3, even: 3 }],
+        allowConsecutive: false,
+        allowSameLastDigit: false,
+        sumRange: { min: 120, max: 160 },
+        preferFrequent: false
+    });
 }
 
-// 9. 고급 통계 조합 (표준편차 고려)
-async function generateStatisticalBalance() {
-    const { frequency } = await analyzeNumbers();
-    const allNumbers = [];
-    
-    for (let i = 1; i <= 45; i++) {
-        allNumbers.push({ num: i, freq: frequency[i] });
-    }
-    
-    // 빈도수 평균 계산
-    const avgFreq = allNumbers.reduce((sum, item) => sum + item.freq, 0) / 45;
-    
-    // 평균 근처 번호들 선택
-    const balanced = allNumbers.filter(item => 
-        Math.abs(item.freq - avgFreq) <= avgFreq * 0.5
-    );
-    
-    if (balanced.length >= 6) {
-        return ensureUniqueAndSort(getRandomNumbers(balanced.map(item => item.num), 6));
-    } else {
-        return ensureUniqueAndSort(getRandomNumbers(allNumbers.map(item => item.num), 6));
-    }
+// 9. 홀짝 2:4 + 구간 분산 + 통계적 균형
+async function generateType9() {
+    return await generateSmartCombination({
+        oddEvenRatios: [{ odd: 2, even: 4 }],
+        allowConsecutive: false,
+        allowSameLastDigit: false,
+        sumRange: { min: 130, max: 150 },
+        preferFrequent: false
+    });
 }
 
-// 10. 황금 비율 조합 (피보나치 수열 기반)
-async function generateGoldenRatio() {
-    const { frequency } = await analyzeNumbers();
-    const fibonacci = [1, 2, 3, 5, 8, 13, 21, 34];
-    const fibonacciNums = [];
-    
-    for (let i = 1; i <= 45; i++) {
-        fibonacciNums.push({ 
-            num: i, 
-            freq: frequency[i],
-            isFib: fibonacci.includes(i)
-        });
-    }
-    
-    // 피보나치 수 2개
-    const fibCandidates = fibonacciNums.filter(item => item.isFib);
-    fibCandidates.sort((a, b) => b.freq - a.freq);
-    const fibSelected = getRandomNumbers(fibCandidates.slice(0, 6).map(item => item.num), 2);
-    
-    // 일반 번호 4개
-    const normalCandidates = fibonacciNums.filter(item => !item.isFib);
-    normalCandidates.sort((a, b) => b.freq - a.freq);
-    const normalSelected = getRandomNumbers(normalCandidates.slice(0, 20).map(item => item.num), 4);
-    
-    return ensureUniqueAndSort([...fibSelected, ...normalSelected]);
+// 10. 홀짝 4:2 + 구간 분산 + 종합 분석
+async function generateType10() {
+    return await generateSmartCombination({
+        oddEvenRatios: [{ odd: 4, even: 2 }],
+        allowConsecutive: false,
+        allowSameLastDigit: false,
+        sumRange: { min: 115, max: 165 },
+        preferFrequent: false
+    });
 }
+
 
 // ========================================
-// 로또 번호 10개 생성 (새로운 알고리즘)
+// 로또 번호 10개 생성 (개선된 알고리즘)
 // ========================================
 async function generateLottoNumbers() {
     console.log('🎲 로또 번호 생성 시작...');
     const recommendations = [];
     
-    // 확률 기반 추천 5개
+    // 1-5: 다양한 홀짝 비율 + 복합 조건
     recommendations.push({
         title: '추천 #1',
-        type: 'probability',
-        typeText: '홀짝 균형 (3:3)',
-        numbers: await generateOddEvenBalance()
+        type: 'smart',
+        typeText: '홀짝 2:4 균형',
+        numbers: await generateType1()
     });
     
     recommendations.push({
         title: '추천 #2',
-        type: 'probability',
-        typeText: '구간 분산 조합',
-        numbers: await generateRangeDistribution()
+        type: 'smart',
+        typeText: '홀짝 3:3 균형',
+        numbers: await generateType2()
     });
     
     recommendations.push({
         title: '추천 #3',
-        type: 'probability',
-        typeText: '합계 최적화 (120-160)',
-        numbers: await generateSumOptimized()
+        type: 'smart',
+        typeText: '홀짝 4:2 균형',
+        numbers: await generateType3()
     });
     
     recommendations.push({
         title: '추천 #4',
-        type: 'probability',
-        typeText: '연속번호 회피',
-        numbers: await generateNonConsecutive()
+        type: 'smart',
+        typeText: '홀짝 2:4 + 자주나온번호',
+        numbers: await generateType4()
     });
     
     recommendations.push({
         title: '추천 #5',
-        type: 'probability',
-        typeText: '끝자리 분산',
-        numbers: await generateLastDigitDistribution()
+        type: 'smart',
+        typeText: '홀짝 3:3 + 자주나온번호',
+        numbers: await generateType5()
     });
     
-    // 균형 조합 5개
+    // 6-10: 균형 조합
     recommendations.push({
         title: '추천 #6',
         type: 'balanced',
-        typeText: '통합 균형 조합',
-        numbers: await generateBalancedCombination()
+        typeText: '홀짝 4:2 + 안나온번호',
+        numbers: await generateType6()
     });
     
     recommendations.push({
         title: '추천 #7',
         type: 'balanced',
-        typeText: '위치 기반 균형',
-        numbers: await generatePositionBalanced()
+        typeText: '혼합 비율 + 위치분석',
+        numbers: await generateType7()
     });
     
     recommendations.push({
         title: '추천 #8',
         type: 'balanced',
-        typeText: '최근 트렌드 반영',
-        numbers: await generateRecentTrend()
+        typeText: '홀짝 3:3 + 최근트렌드',
+        numbers: await generateType8()
     });
     
     recommendations.push({
         title: '추천 #9',
         type: 'balanced',
-        typeText: '통계적 균형',
-        numbers: await generateStatisticalBalance()
+        typeText: '홀짝 2:4 + 통계균형',
+        numbers: await generateType9()
     });
     
     recommendations.push({
         title: '추천 #10',
         type: 'balanced',
-        typeText: '황금 비율 조합',
-        numbers: await generateGoldenRatio()
+        typeText: '홀짝 4:2 + 종합분석',
+        numbers: await generateType10()
     });
     
     console.log('✅ 로또 번호 생성 완료');
     return recommendations;
 }
+
 
 // 추천 번호의 마킹 표시 렌더링
 function renderRecommendMarkings(recommendations) {
