@@ -238,17 +238,42 @@ body {
     font-size: 1.1em;
 }
 
+/* 추천 타입 배지 색상 */
 .recommend-type {
-    font-size: 0.85em;
-    padding: 4px 12px;
+    font-size: 0.8em;
+    padding: 5px 12px;
     border-radius: 20px;
     color: white;
     font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.type-rare {
-    background: #6c5ce7;
+.type-probability {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
+
+.type-balanced {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+/* 기존 타입 (하위 호환) */
+.type-rare {
+    background: linear-gradient(135deg, #6c5ce7 0%, #5f3dc4 100%);
+}
+
+.type-frequent {
+    background: linear-gradient(135deg, #00b894 0%, #00a383 100%);
+}
+
+.type-mixed {
+    background: linear-gradient(135deg, #fdcb6e 0%, #f39c12 100%);
+    color: #2c3e50;
+}
+
+.type-position {
+    background: linear-gradient(135deg, #e17055 0%, #d63031 100%);
+}
+
 
 .type-frequent {
     background: #00b894;
